@@ -1,4 +1,4 @@
-blender.io_mqo : Blender importer and exporter for Metasequia files (.mqo)
+blender.io_mqo : Blender importer and exporter for Metasequoia files (.mqo)
 ==============
 
 feature for exporter
