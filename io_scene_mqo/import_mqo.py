@@ -86,8 +86,10 @@ def import_mqo(op, filepath, rot90, scale, debug):
                         me.update()
                         scn = bpy.context.scene
                         ob = bpy.data.objects.new(obj_name, me)
-                        scn.objects.link(ob)
-                        scn.objects.active = ob
+                        #scn.objects.link(ob)
+                        scn.collection.objects.link(ob)
+                        #TODO replace following line with 2.80 api
+                        #scn.objects.active = ob
                         obj = False
                         v = False
                         v_nb = 0
@@ -119,7 +121,7 @@ def import_mqo(op, filepath, rot90, scale, debug):
                 (x,y,z) = (float(words[0]), float(words[1]), float(words[2]))
                 if rot90:
                     V = mathutils.Vector((x,y,z))
-                    vv = m*V
+                    vv = m @ V #m*V new syntax
                     verts.append( (scale*vv.x, scale*vv.y, scale*vv.z) )
                 else:
                     verts.append( (scale*x, scale*y, scale*z) )
