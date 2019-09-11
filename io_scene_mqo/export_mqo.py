@@ -45,7 +45,7 @@ import bpy_extras.io_utils
 
 def export_mqo(op, filepath, objects, rot90, invert, edge, uv_exp, uv_cor, mat_exp, mod_exp, scale):
     
-        # Exit edit mode before exporting, so current object states are exported properly.
+    # Exit edit mode before exporting, so current object states are exported properly.
     #if bpy.ops.object.mode_set.poll():
     #    bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -101,20 +101,21 @@ def exp_obj(op, fw, ob, rot90, invert, edge, uv_exp, uv_cor, scale, mat_exp, int
         
         
     fw.append("\tvertex %i {\n"% (len(me.vertices)))
-    e = mathutils.Euler();
+    e = mathutils.Euler()
     e.rotate_axis('X', math.radians(-90))
     m = e.to_matrix()
     for v in me.vertices:
         if rot90:
             # rotate -90 degrees about X axis
-            vv = m*v.co
+            vv = m @ v.co #new syntax, was m*v.co
             fw.append("\t\t%.5f %.5f %.5f\n" % (vv[0]*scale, vv[1]*scale, vv[2]*scale))
         else:
             fw.append("\t\t%.5f %.5f %.5f\n" % (v.co[0]*scale, v.co[1]*scale, v.co[2]*scale))
     fw.append("\t}\n")
     
-    me.update(False, True)
-    faces = me.tessfaces
+    #me.update(False, True)
+    me.update(calc_edges_loose=True)
+    faces = me.tessfaces #TODO: Mesh.tessfaces not exist in 2.80 api
     lostEdges = 0
     for e in me.edges:
         if e.is_loose:
@@ -127,7 +128,8 @@ def exp_obj(op, fw, ob, rot90, invert, edge, uv_exp, uv_cor, scale, mat_exp, int
     else:
         fw.append("\tface %i {\n" % (len(faces)))
     
-    me.update(False, True)     
+    #me.update(False, True)
+    me.update(calc_edges_loose=True)
     for f in faces:
         vs = f.vertices
         if len(f.vertices) == 3:
