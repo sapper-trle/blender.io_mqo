@@ -76,17 +76,22 @@ class ExportMQO(bpy.types.Operator, ExportHelper):
  
     rot90 : bpy.props.BoolProperty(
         name = "Up axis correction",
-        description="Blender up axis is Z but metasequoia up axis is Y\nExporter will invert value to be in the correcte direction",
+        description="Blender up axis is Z but Metasequoia up axis is Y\nExporter will invert value to be in the correct direction",
         default = True)
     
     invert : bpy.props.BoolProperty(
         name = "Correction of inverted faces",
         description="Correction of inverted faces",
         default = True)
+
+    no_ngons : bpy.props.BoolProperty(
+        name = "Convert ngons to triangles",
+        description = "ngons not supported in older versions of Metasequoia",
+        default = False)
     
     edge : bpy.props.BoolProperty(
         name = "Export lost edge",
-        description="Export edge with is not attached to a polygon",
+        description="Export edge which is not attached to a polygon",
         default = True)
  
     uv_exp : bpy.props.BoolProperty(
@@ -96,7 +101,7 @@ class ExportMQO(bpy.types.Operator, ExportHelper):
     
     uv_cor : bpy.props.BoolProperty(
         name = "Convert UV",
-        description="invert UV map to be in the direction has metasequoia",
+        description="Invert UV map to be in the same direction as Metasequoia",
         default = True)
         
     mat_exp : bpy.props.BoolProperty(
@@ -127,7 +132,7 @@ class ExportMQO(bpy.types.Operator, ExportHelper):
         export_mqo.export_mqo(self,
             self.properties.filepath, 
             meshobjects, 
-            self.rot90, self.invert, self.edge, self.uv_exp, self.uv_cor, self.mat_exp, self.mod_exp,
+            self.rot90, self.invert, self.no_ngons, self.edge, self.uv_exp, self.uv_cor, self.mat_exp, self.mod_exp,
             self.scale)
         return {'FINISHED'}
  
@@ -165,7 +170,7 @@ class ImportMQO(bpy.types.Operator, ExportHelper):
  
     rot90 : bpy.props.BoolProperty(
         name = "Up axis correction",
-        description="Blender up axis is Z but metasequoia up axis is Y\nExporter will invert value to be in the correcte direction",
+        description="Blender up axis is Z but Metasequoia up axis is Y\nExporter will invert value to be in the correct direction",
         default = True)
 
     debug : bpy.props.BoolProperty(
