@@ -254,6 +254,7 @@ def exp_obj(op, fw, ob, rot90, invert, no_ngons, edge, uv_exp, uv_cor, scale, ma
     
 def mat_extract(op, mat, tmp, index):
     #FIXME: bit of a hack, I don't know enough about materials in Blender
+    #FIXME: should probably use bpy_extras.node_shader_utils but module not documented in current api docs!!!!
     # assumes at most one diffuse texture node ("Color" socket) connected to shader node or output node
     # assumes at most one bump texture node ("Color" socket) connected to output node "Displacement" socket
     # assumes at most one alpha texture node ("alpha" socket) connected to shader node "alpha" socket 
