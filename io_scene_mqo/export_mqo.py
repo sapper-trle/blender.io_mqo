@@ -349,5 +349,5 @@ def getFacesCount(msh):
     if ngons==0:
         return len(msh.polygons), ngons
     msh.calc_loop_triangles()
-    ngon_tris = len(msh.loop_triangles) - quads - tris
+    ngon_tris = len(msh.loop_triangles) - (2*quads) - tris
     return quads + tris + ngon_tris, ngons
