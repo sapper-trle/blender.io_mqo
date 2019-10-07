@@ -52,6 +52,7 @@ from bpy.props import (BoolProperty,
                        EnumProperty,
                        )
 from bpy_extras.io_utils import (ExportHelper,
+                                 ImportHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
@@ -151,17 +152,17 @@ class ExportMQO(bpy.types.Operator, ExportHelper):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class ImportMQO(bpy.types.Operator, ExportHelper):
+class ImportMQO(bpy.types.Operator, ImportHelper):
     """Import a Metasequoia file (.mqo)"""
     bl_idname = "io_import_scene.mqo"
     bl_description = 'Import from mqo file format (.mqo)'
     bl_label = "Import mqo"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
  
-    # From ExportHelper. Filter filenames.
-    filename_ext = ".mqo"
-    filter_glob : StringProperty(default="*.mqo", options={'HIDDEN'})
+    # From ImportHelper. Filter filenames.
+    filter_glob : StringProperty(default="*.mqo;*.mqoz", options={'HIDDEN'})
 
     scale : bpy.props.FloatProperty(
         name = "Scale", 
@@ -179,7 +180,33 @@ class ImportMQO(bpy.types.Operator, ExportHelper):
         default = False)
  
     def execute(self, context):
-        msg = ".mqo import: Opening %s"% self.properties.filepath
+        import pathlib # Python 3.4
+        pth  = pathlib.Path(self.properties.filepath)
+
+        if pth.suffix is "":
+            pth  = pathlib.Path(self.properties.filepath + ".mqo")
+            file_exists = pth.exists()
+            if not file_exists:
+                pth = pathlib.Path(self.properties.filepath + ".mqoz")
+                file_exists = pth.exists()
+                if not file_exists:
+                    pth = pathlib.Path(self.properties.filepath)
+        else:
+            file_exists = pth.exists() 
+
+        if not file_exists:
+            msg = "File not found: %s" % pth 
+            print(msg)
+            self.report({'ERROR'}, msg)
+            return{'CANCELLED'}  
+        
+        if pth.suffix.lower() not in [".mqo", ".mqoz"]:
+            msg = "Not a Metasequoia file: %s" % pth
+            print(msg)
+            self.report({'ERROR'}, msg)
+            return{'CANCELLED'}
+
+        msg = ".mqo import: Opening %s"% pth
         print(msg)
         self.report({'INFO'}, msg)
         if self.scale < 1:
@@ -192,8 +219,8 @@ class ImportMQO(bpy.types.Operator, ExportHelper):
         print(msg)
         self.report({'INFO'}, msg)        
         from . import import_mqo
-        import_mqo.import_mqo(self,
-            self.properties.filepath, 
+        import_mqo.open_mqo(self,
+            pth, 
             self.rot90,
             self.scale,
             self.debug)
