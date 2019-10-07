@@ -163,7 +163,7 @@ def import_mqo(op, fp, rot90, scale, debug):
             elif int(words[0]) == 4:
                 faces.append((int(words[1].strip('V(')), int(words[2]), int(words[3]), int(words[4].strip(')'))))
             else:
-                dprint('error : face with %i vertex' % words[0], debug)
+                dprint('error : face with %s vertex' % words[0], debug)
             f_nb = f_nb -1
             if f_nb ==0:
                 #f= False
