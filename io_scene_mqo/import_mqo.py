@@ -105,10 +105,13 @@ def import_mqo(op, fp, rot90, scale, debug):
                     me = bpy.data.meshes.new(obj_name)
                     me.from_pydata(verts, [], faces)
                     me.update()
-                    scn = bpy.context.scene
+                    # scn = bpy.context.scene
                     ob = bpy.data.objects.new(obj_name, me)
-                    #scn.objects.link(ob)
-                    scn.collection.objects.link(ob)
+                    view_layer = bpy.context.view_layer
+                    collection = view_layer.active_layer_collection.collection
+                    collection.objects.link(ob)
+                    view_layer.update()
+                    # scn.collection.objects.link(ob)
                     #TODO replace following line with 2.80 api
                     #scn.objects.active = ob
                     obj = False
@@ -169,8 +172,7 @@ def import_mqo(op, fp, rot90, scale, debug):
                 #f= False
                 dprint('end of face?', debug)
         else:
-            dprint('don\'t know what is it', debug)
-            pass            
+            dprint('don\'t know what is it', debug)          
     
     msg = ".mqo import: Import finished"
     print(msg, "\n")
