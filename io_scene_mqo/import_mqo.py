@@ -138,7 +138,7 @@ def import_mqo(op, fp, rot90, scale, debug):
                         #TODO replace following line with 2.80 api
                         #scn.objects.active = ob
                     else:
-                        if not (verts and faces):
+                        if not verts and not faces:
                             s = "vertices or faces"
                         elif not verts:
                             s = "vertices"
