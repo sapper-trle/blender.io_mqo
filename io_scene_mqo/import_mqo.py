@@ -47,13 +47,13 @@ def open_mqo(op, filepath, rot90, scale, debug):
     if filepath.suffix.lower() in [".mqo"]:
         name = os.path.basename(filepath)
         realpath = os.path.realpath(os.path.expanduser(filepath))
-        with open(realpath, 'rU') as fp:    # Universal read
+        with open(realpath, 'rb') as fp:
             dprint('Importing %s' % realpath, debug) 
             import_mqo(op, fp, rot90, scale, debug)
     else:
         mqo_file = None
         import zipfile
-        from io import TextIOWrapper as tw
+        # from io import TextIOWrapper as tw
         with zipfile.ZipFile(filepath) as zfile:
             for zinfo in zfile.infolist():
                 f, ext = os.path.splitext(zinfo.filename)
@@ -63,7 +63,8 @@ def open_mqo(op, filepath, rot90, scale, debug):
             if mqo_file:
                 with zfile.open(mqo_file) as fp:
                     dprint('Importing %s' % filepath, debug)
-                    import_mqo(op, tw(fp), rot90, scale, debug)
+                    import_mqo(op, fp, rot90, scale, debug)
+                    # import_mqo(op, tw(fp), rot90, scale, debug)
             else:
                 msg = ".mqo Import: No mqo file in mqoz file"
                 dprint(msg, debug)
@@ -84,10 +85,28 @@ def import_mqo(op, fp, rot90, scale, debug):
     v = False
     v_nb = 0
     obj_name = ""
+    obj_count = 0
     f = False
     f_nb = 0
-    
-    for line in fp:
+    shift_jis = False
+
+    for bytesline in fp:
+        try:
+            line = bytesline.decode()
+        except UnicodeDecodeError:
+            try:
+                # dprint(bytesline, debug)
+                msg = ".mqo import: Unknown character encoding found. Trying shift_jis. Import may be unsuccessful"
+                print(msg)
+                op.report({'WARNING'}, msg)
+                shift_jis = True
+                line = bytesline.decode(encoding='shift_jis')
+            except UnicodeDecodeError:
+                msg = ".mqo import: Character encoding not 'shift_jis'. Trying ignoring errors. Import may be unsuccessful"
+                print(msg)
+                op.report({'WARNING'}, msg)
+                shift_jis = False
+                line = bytesline.decode(errors = 'replace')
         words = line.split()
         if len(words) == 0:                     ##Nothing
             pass    
@@ -102,18 +121,33 @@ def import_mqo(op, fp, rot90, scale, debug):
                     dprint('end of face', debug)
                 else:
                     dprint('end of obj. importing :"%s"' % obj_name, debug)
-                    me = bpy.data.meshes.new(obj_name)
-                    me.from_pydata(verts, [], faces)
-                    me.update()
-                    # scn = bpy.context.scene
-                    ob = bpy.data.objects.new(obj_name, me)
-                    view_layer = bpy.context.view_layer
-                    collection = view_layer.active_layer_collection.collection
-                    collection.objects.link(ob)
-                    view_layer.update()
-                    # scn.collection.objects.link(ob)
-                    #TODO replace following line with 2.80 api
-                    #scn.objects.active = ob
+                    if verts and faces:
+                        if shift_jis:
+                            pass # need to rename object and mesh since shift_jis chars not supported in  my Blender!
+                        me = bpy.data.meshes.new(obj_name)
+                        me.from_pydata(verts, [], faces)
+                        me.update()
+                        # scn = bpy.context.scene
+                        ob = bpy.data.objects.new(obj_name, me)
+                        view_layer = bpy.context.view_layer
+                        collection = view_layer.active_layer_collection.collection
+                        collection.objects.link(ob)
+                        obj_count += 1
+                        view_layer.update()
+                        # scn.collection.objects.link(ob)
+                        #TODO replace following line with 2.80 api
+                        #scn.objects.active = ob
+                    else:
+                        if not (verts and faces):
+                            s = "vertices or faces"
+                        elif not verts:
+                            s = "vertices"
+                        else:
+                            s = "faces"
+                        msg = ".mqo import: Object \"%s\" ignored. No %s found" % (obj_name, s)
+                        print(msg)
+                        op.report({'WARNING'}, msg)
+
                     obj = False
                     v = False
                     v_nb = 0
@@ -140,6 +174,11 @@ def import_mqo(op, fp, rot90, scale, debug):
             dprint('begin of ver', debug)
             v = True
             v_nb = int(words[1])
+        elif obj and words[0] == "BVertex":
+            msg = ".mqo import: Aborting. BVertex format not supported"
+            print(msg)
+            op.report({'ERROR'}, msg)
+            return
         elif obj and v and v_nb != 0:           ##get vertex coor when vertex and obj
             dprint('found a vertex', debug)
             (x,y,z) = (float(words[0]), float(words[1]), float(words[2]))
@@ -177,5 +216,10 @@ def import_mqo(op, fp, rot90, scale, debug):
     msg = ".mqo import: Import finished"
     print(msg, "\n")
     op.report({'INFO'}, msg)
+    if obj_count == 0:
+        msg = ".mqo import: Unsuccessful. No objects imported"
+        print(msg, "\n")
+        op.report({'ERROR'}, msg)
+
     return
  
