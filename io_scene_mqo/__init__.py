@@ -73,7 +73,7 @@ class ExportMQO(bpy.types.Operator, ExportHelper):
     scale : bpy.props.FloatProperty(
         name = "Scale", 
         description="Scale mesh. Value > 1 means bigger, value < 1 means smaller", 
-        default = 1, min = 0.001, max = 1000.0)
+        default = 1, min = 0.001, max = 1000.0, step=1, precision=3, soft_min=.001, soft_max=1000.0)
  
     rot90 : bpy.props.BoolProperty(
         name = "Up axis correction",
@@ -167,7 +167,7 @@ class ImportMQO(bpy.types.Operator, ImportHelper):
     scale : bpy.props.FloatProperty(
         name = "Scale", 
         description="Scale mesh. Value > 1 means bigger, value < 1 means smaller", 
-        default = 1, min = 0.001, max = 1000.0)
+        default = 1, min = 0.001, max = 1000.0, step=1, precision=3, soft_min=0.001, soft_max=1000.0)
  
     rot90 : bpy.props.BoolProperty(
         name = "Up axis correction",
