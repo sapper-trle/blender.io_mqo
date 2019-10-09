@@ -36,7 +36,7 @@ base source from :
 http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Cookbook/Code_snippets/Multi-File_packages#Simple_obj_import
 """
 
-import bpy, os, math, mathutils
+import bpy, os, math, mathutils, struct
 
 def dprint(string, debug=False):
     if debug:
@@ -84,6 +84,7 @@ def import_mqo(op, fp, rot90, scale, debug):
     mat_nb = 0
     v = False
     v_nb = 0
+    vb = False
     obj_name = ""
     obj_count = 0
     f = False
@@ -116,6 +117,9 @@ def import_mqo(op, fp, rot90, scale, debug):
                 if v:
                     v=False
                     dprint('end of vertex', debug)
+                elif vb:
+                    vb=False
+                    dprint('end of Bvertex', debug)
                 elif f:
                     f=False
                     dprint('end of face', debug)
@@ -175,10 +179,31 @@ def import_mqo(op, fp, rot90, scale, debug):
             v = True
             v_nb = int(words[1])
         elif obj and words[0] == "BVertex":
-            msg = ".mqo import: Aborting. BVertex format not supported"
-            print(msg)
-            op.report({'ERROR'}, msg)
-            return
+            vb = True
+            v_nb = int(words[1])
+            v_bytes = int(fp.readline().decode().split()[-1].strip("[]"))
+            #dprint('nl=%s' % fp.readline(), debug)
+            for i in range(v_nb):
+                tmp = struct.unpack("<fff", fp.read(4*3))
+                dprint('tmp = %s' % str(tmp), debug)
+                if rot90:
+                    V = mathutils.Vector(tmp)
+                    vv = m @ V
+                    verts.append( (scale*vv.x, scale*vv.y, scale*vv.z) )
+                else:
+                    verts.append( (scale*tmp[0], scale*tmp[1], scale*tmp[2]) )
+                v_nb -= 1 
+                if v_nb == 0:
+                    #v = False
+                    dprint('end of vertex?', debug)
+        elif obj and (words[0] =="weit" or words[0] =="color") and (v or vb):
+            bracecount=1
+            while bracecount > 0:
+                tmp = fp.readline()
+                if tmp.find(b"{") != -1:
+                    bracecount += 1
+                if tmp.find(b"}") != -1:
+                    bracecount -= 1
         elif obj and words[0] == "vertexattr":
             bracecount=1
             for aline in fp:
