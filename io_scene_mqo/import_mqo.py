@@ -126,13 +126,14 @@ def import_mqo(op, fp, rot90, scale, debug):
                 else:
                     dprint('end of obj. importing :"%s"' % obj_name, debug)
                     if verts and faces:
+                        nm = obj_name
                         if shift_jis:
-                            pass # need to rename object and mesh since shift_jis chars not supported in  my Blender!
-                        me = bpy.data.meshes.new(obj_name)
+                            nm = "obj" # need to rename object and mesh since shift_jis chars not supported in  my Blender!
+                        me = bpy.data.meshes.new(nm)
                         me.from_pydata(verts, [], faces)
                         me.update()
                         # scn = bpy.context.scene
-                        ob = bpy.data.objects.new(obj_name, me)
+                        ob = bpy.data.objects.new(nm, me)
                         view_layer = bpy.context.view_layer
                         collection = view_layer.active_layer_collection.collection
                         collection.objects.link(ob)
