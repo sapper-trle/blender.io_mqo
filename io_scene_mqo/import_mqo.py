@@ -128,7 +128,7 @@ def import_mqo(op, fp, rot90, scale, debug):
                     if verts and faces:
                         nm = obj_name
                         if shift_jis:
-                            nm = "obj" # need to rename object and mesh since shift_jis chars not supported in  my Blender!
+                            nm = "obj" # need to rename object and mesh since shift_jis chars not supported in my Blender!
                         me = bpy.data.meshes.new(nm)
                         me.from_pydata(verts, [], faces)
                         me.update()
@@ -240,7 +240,17 @@ def import_mqo(op, fp, rot90, scale, debug):
             elif int(words[0]) == 4:
                 faces.append((int(words[1].strip('V(')), int(words[2]), int(words[3]), int(words[4].strip(')'))))
             else:
-                dprint('error : face with %s vertex' % words[0], debug)
+                dprint('face with %s vertex' % words[0], debug)
+                num = int(words[0])
+                v_indices = []
+                for idx in range(1, num+1):
+                    if idx == 1:
+                        v_indices.append(int(words[idx].strip('V(')))
+                    elif idx == num:
+                        v_indices.append(int(words[idx].strip(')')))
+                    else:
+                        v_indices.append(int(words[idx]))
+                faces.append(tuple(v_indices))
             f_nb = f_nb -1
             if f_nb ==0:
                 #f= False
