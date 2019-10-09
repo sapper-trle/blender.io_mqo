@@ -179,6 +179,15 @@ def import_mqo(op, fp, rot90, scale, debug):
             print(msg)
             op.report({'ERROR'}, msg)
             return
+        elif obj and words[0] == "vertexattr":
+            bracecount=1
+            for aline in fp:
+                if aline.find(b"{") !=-1:
+                    bracecount +=1
+                if aline.find(b"}") !=-1:
+                    bracecount -=1
+                if bracecount == 0:
+                    break
         elif obj and v and v_nb != 0:           ##get vertex coor when vertex and obj
             dprint('found a vertex', debug)
             (x,y,z) = (float(words[0]), float(words[1]), float(words[2]))
